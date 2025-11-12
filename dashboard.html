@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocShare - Dashboard</title>
+    <title>DocShare - Document Sharing Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -16,11 +16,24 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
         }
-        .logout-btn {
+        .user-profile {
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        .logout-btn {
             background: rgba(255,255,255,0.2);
             color: white;
             border: none;
@@ -28,6 +41,7 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -49,6 +63,19 @@
             color: #667eea;
             margin-bottom: 15px;
         }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 10px 0;
+        }
+        .progress {
+            background: #667eea;
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
         .btn {
             background: #667eea;
             color: white;
@@ -58,6 +85,9 @@
             cursor: pointer;
             margin: 5px;
         }
+        .btn:hover { background: #5a6fd8; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
         .document-item {
             background: #f8f9fa;
             padding: 15px;
@@ -68,248 +98,541 @@
         .upload-area {
             border: 2px dashed #667eea;
             border-radius: 10px;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             margin: 15px 0;
+            background: #f8f9ff;
+        }
+        .file-input {
+            margin: 10px 0;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .category-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .user-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .document-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="user-profile">
+            <img id="userProfilePic" class="profile-pic" src="" alt="Profile">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
         <h1>📚 DocShare Platform</h1>
-        <p id="welcomeMessage">Welcome to Document Sharing!</p>
+        <p id="welcomeMessage">Welcome to your document library!</p>
     </div>
 
     <div class="container">
         <div class="dashboard">
-            <!-- Upload Card -->
+            <!-- User Profile Card -->
+            <div class="card">
+                <h3>👤 Your Profile</h3>
+                <div class="user-info">
+                    <div id="userDetails">Loading...</div>
+                </div>
+                <div>
+                    <strong>Documents Uploaded:</strong> <span id="uploadCount">0</span><br>
+                    <strong>Documents Downloaded:</strong> <span id="downloadCount">0</span><br>
+                    <strong>Member Since:</strong> <span id="memberSince"></span>
+                </div>
+            </div>
+
+            <!-- Upload Progress Card -->
+            <div class="card">
+                <h3>📊 Your Contribution</h3>
+                <p>Upload Progress: <span id="uploadProgress">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress" id="uploadProgressBar"></div>
+                </div>
+                <p>Download Activity: <span id="downloadProgress">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress" id="downloadProgressBar"></div>
+                </div>
+                <p>Community Rating: <span id="communityRating">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress" id="communityProgressBar"></div>
+                </div>
+            </div>
+
+            <!-- Upload Documents Card -->
             <div class="card">
                 <h3>📤 Upload Documents</h3>
                 <div class="upload-area">
-                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx">
-                    <br><br>
-                    <input type="text" id="docTitle" placeholder="Document Title" style="width: 100%; padding: 10px; margin: 10px 0;">
-                    <select id="docCategory" style="width: 100%; padding: 10px; margin: 10px 0;">
-                        <option value="novels">Novels</option>
-                        <option value="pastpapers">Past Papers</option>
-                        <option value="textbooks">Textbooks</option>
-                    </select>
-                    <button class="btn" onclick="uploadDocument()">Upload Document</button>
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.txt" multiple>
+                    <div>
+                        <input type="text" id="docTitle" placeholder="Document Title" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+                        <select id="docCategory" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="novels">Novels & Literature</option>
+                            <option value="pastpapers">Past Papers</option>
+                            <option value="textbooks">Textbooks</option>
+                            <option value="research">Research Papers</option>
+                            <option value="notes">Study Notes</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <textarea id="docDescription" placeholder="Document description..." style="width: 100%; height: 60px; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="uploadDocument()">Upload Document</button>
                 </div>
-                <div id="uploadStatus"></div>
+                <div id="uploadStatus" style="margin-top: 10px;"></div>
             </div>
 
-            <!-- Document Library -->
+            <!-- Document Library Card -->
             <div class="card">
                 <h3>📚 Document Library</h3>
-                <input type="text" id="searchBox" placeholder="Search documents..." style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search documents...">
+                <div class="category-filter">
+                    <button class="category-btn active" onclick="filterDocuments('all')">All</button>
+                    <button class="category-btn" onclick="filterDocuments('novels')">Novels</button>
+                    <button class="category-btn" onclick="filterDocuments('pastpapers')">Past Papers</button>
+                    <button class="category-btn" onclick="filterDocuments('textbooks')">Textbooks</button>
+                    <button class="category-btn" onclick="filterDocuments('research')">Research</button>
+                </div>
                 <div id="documentList">
-                    <!-- Documents will appear here -->
+                    <!-- Documents will be loaded here -->
                 </div>
             </div>
 
-            <!-- User Stats -->
+            <!-- Recent Activity Card -->
             <div class="card">
-                <h3>📊 Your Stats</h3>
-                <p>Documents Uploaded: <span id="uploadCount">0</span></p>
-                <p>Documents Downloaded: <span id="downloadCount">0</span></p>
-                <button class="btn" onclick="loadStats()">Refresh Stats</button>
+                <h3>📈 Recent Activity</h3>
+                <div style="margin-top: 15px;">
+                    <h4>Your Recent Downloads</h4>
+                    <div id="recentDownloads"></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <h4>Your Recent Uploads</h4>
+                    <div id="recentUploads"></div>
+                </div>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- Platform Stats Card -->
             <div class="card">
-                <h3>⚡ Quick Actions</h3>
-                <button class="btn" onclick="addSampleDocuments()">Add Sample Documents</button>
-                <button class="btn" onclick="clearAllData()">Clear All Data</button>
+                <h3>🏆 Platform Stats</h3>
+                <div class="document-item">
+                    <strong>Total Documents</strong>
+                    <div class="document-stats">
+                        <span id="totalDocuments">0</span>
+                    </div>
+                </div>
+                <div class="document-item">
+                    <strong>Most Popular Category</strong>
+                    <div class="document-stats">
+                        <span id="popularCategory">Loading...</span>
+                    </div>
+                </div>
+                <div class="document-item">
+                    <strong>Your Contribution</strong>
+                    <div class="document-stats">
+                        <span id="userContribution">0%</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshStats()" style="margin-top: 15px;">Refresh Stats</button>
             </div>
         </div>
     </div>
 
     <script>
-        // SECURITY CHECK
-        const currentUser = localStorage.getItem('docshare_current_user');
+        // SECURITY CHECK - USE YOUR EXISTING USER SYSTEM
+        const currentUser = localStorage.getItem('learnhub_current_user');
         if (!currentUser) {
             alert('Please login first!');
             window.location.href = 'index.html';
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard loaded for user:', currentUser);
-            document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser}!`;
-            loadDocuments();
-            loadStats();
-        });
+        // User Data Management - USE YOUR EXISTING SYSTEM
+        function getUserData() {
+            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            return users[currentUser] || {};
+        }
 
-        // Document storage
+        function saveUserData(userData) {
+            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            users[currentUser] = { ...getUserData(), ...userData };
+            localStorage.setItem('learnhub_users', JSON.stringify(users));
+        }
+
+        // Document Storage Management (NEW)
         function getDocuments() {
-            const docs = localStorage.getItem('docshare_documents');
-            console.log('Loaded documents:', docs);
-            return docs ? JSON.parse(docs) : [];
+            return JSON.parse(localStorage.getItem('docshare_documents') || '[]');
         }
 
         function saveDocuments(documents) {
             localStorage.setItem('docshare_documents', JSON.stringify(documents));
         }
 
-        // Upload document
+        // Initialize Dashboard
+        function initializeDashboard() {
+            const userData = getUserData();
+            
+            // Display user info USING YOUR EXISTING USER DATA
+            document.getElementById('welcomeMessage').textContent = `Welcome back, ${currentUser}!`;
+            
+            // Profile picture USING YOUR EXISTING SYSTEM
+            if (userData.profilePic) {
+                document.getElementById('userProfilePic').src = userData.profilePic;
+            }
+            
+            // User details USING YOUR EXISTING SYSTEM
+            document.getElementById('userDetails').innerHTML = `
+                <strong>Username:</strong> ${userData.username}<br>
+                <strong>Email:</strong> ${userData.email}<br>
+                <strong>User Type:</strong> ${userData.userType || 'Member'}
+            `;
+            
+            // Member since USING YOUR EXISTING SYSTEM
+            if (userData.createdAt) {
+                const created = new Date(userData.createdAt);
+                document.getElementById('memberSince').textContent = created.toLocaleDateString();
+            }
+            
+            // Load user stats
+            loadUserStats();
+            
+            // Load documents
+            loadDocuments();
+            
+            // Load platform stats
+            loadPlatformStats();
+        }
+
+        // Load User Statistics
+        function loadUserStats() {
+            const userData = getUserData();
+            const uploads = userData.uploads || [];
+            const downloads = userData.downloads || [];
+            
+            document.getElementById('uploadCount').textContent = uploads.length;
+            document.getElementById('downloadCount').textContent = downloads.length;
+            
+            // Calculate progress based on activity
+            const uploadProgress = Math.min(100, uploads.length * 20);
+            const downloadProgress = Math.min(100, downloads.length * 10);
+            const communityProgress = Math.min(100, (uploads.length + downloads.length) * 5);
+            
+            document.getElementById('uploadProgress').textContent = uploadProgress + '%';
+            document.getElementById('downloadProgress').textContent = downloadProgress + '%';
+            document.getElementById('communityRating').textContent = communityProgress + '%';
+            
+            document.getElementById('uploadProgressBar').style.width = uploadProgress + '%';
+            document.getElementById('downloadProgressBar').style.width = downloadProgress + '%';
+            document.getElementById('communityProgressBar').style.width = communityProgress + '%';
+            
+            // Load recent activity
+            loadRecentActivity();
+        }
+
+        // Load Recent Activity
+        function loadRecentActivity() {
+            const userData = getUserData();
+            const downloads = userData.downloads || [];
+            const uploads = userData.uploads || [];
+            
+            const recentDownloads = downloads.slice(-3).reverse();
+            const recentUploads = uploads.slice(-3).reverse();
+            
+            const downloadsDiv = document.getElementById('recentDownloads');
+            const uploadsDiv = document.getElementById('recentUploads');
+            
+            downloadsDiv.innerHTML = '';
+            uploadsDiv.innerHTML = '';
+            
+            recentDownloads.forEach(download => {
+                const element = document.createElement('div');
+                element.className = 'document-item';
+                element.innerHTML = `
+                    <strong>${download.title}</strong>
+                    <div class="document-stats">
+                        <span>${download.category}</span>
+                        <span>${new Date(download.downloadedAt).toLocaleDateString()}</span>
+                    </div>
+                `;
+                downloadsDiv.appendChild(element);
+            });
+            
+            recentUploads.forEach(upload => {
+                const element = document.createElement('div');
+                element.className = 'document-item';
+                element.innerHTML = `
+                    <strong>${upload.title}</strong>
+                    <div class="document-stats">
+                        <span>${upload.category}</span>
+                        <span>${new Date(upload.uploadedAt).toLocaleDateString()}</span>
+                    </div>
+                `;
+                uploadsDiv.appendChild(element);
+            });
+        }
+
+        // Upload Document Function
         function uploadDocument() {
-            const title = document.getElementById('docTitle').value;
-            const category = document.getElementById('docCategory').value;
+            const fileInput = document.getElementById('fileInput');
+            const titleInput = document.getElementById('docTitle');
+            const categoryInput = document.getElementById('docCategory');
+            const descriptionInput = document.getElementById('docDescription');
+            
+            const title = titleInput.value.trim();
+            const category = categoryInput.value;
+            const description = descriptionInput.value.trim();
+            const files = fileInput.files;
             
             if (!title) {
-                alert('Please enter a document title');
+                showUploadStatus('Please enter a document title', 'error');
                 return;
             }
-
-            const documents = getDocuments();
-            const newDoc = {
+            
+            if (files.length === 0) {
+                showUploadStatus('Please select a file to upload', 'error');
+                return;
+            }
+            
+            // Create document object
+            const document = {
                 id: Date.now().toString(),
                 title: title,
                 category: category,
+                description: description,
+                filename: files[0].name,
+                fileType: files[0].type,
+                fileSize: files[0].size,
                 uploader: currentUser,
                 uploadedAt: new Date().toISOString(),
                 downloads: 0
             };
-
-            documents.push(newDoc);
-            saveDocuments(documents);
-
-            document.getElementById('docTitle').value = '';
-            document.getElementById('fileInput').value = '';
             
-            showMessage('Document uploaded successfully!', 'success');
+            // Save document
+            const documents = getDocuments();
+            documents.push(document);
+            saveDocuments(documents);
+            
+            // Update user uploads USING YOUR EXISTING USER SYSTEM
+            const userData = getUserData();
+            const uploads = userData.uploads || [];
+            uploads.push({
+                id: document.id,
+                title: document.title,
+                category: document.category,
+                uploadedAt: document.uploadedAt
+            });
+            saveUserData({ uploads: uploads });
+            
+            // Clear form
+            titleInput.value = '';
+            descriptionInput.value = '';
+            fileInput.value = '';
+            
+            showUploadStatus('Document uploaded successfully!', 'success');
             loadDocuments();
-            loadStats();
+            loadUserStats();
+            loadPlatformStats();
         }
 
-        // Load documents
-        function loadDocuments() {
+        // Show Upload Status
+        function showUploadStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = type === 'success' ? 'message success' : 'message error';
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Load Documents
+        function loadDocuments(filterCategory = 'all') {
             const documents = getDocuments();
             const documentList = document.getElementById('documentList');
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-
+            
             documentList.innerHTML = '';
-
-            if (documents.length === 0) {
-                documentList.innerHTML = '<div class="document-item">No documents yet. Upload some documents!</div>';
-                return;
-            }
-
-            const filteredDocs = documents.filter(doc => 
-                doc.title.toLowerCase().includes(searchTerm)
-            );
-
+            
+            const filteredDocs = documents.filter(doc => {
+                const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
+                const matchesSearch = doc.title.toLowerCase().includes(searchTerm) || 
+                                    doc.description.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+            
             if (filteredDocs.length === 0) {
                 documentList.innerHTML = '<div class="document-item">No documents found</div>';
                 return;
             }
-
+            
             filteredDocs.forEach(doc => {
                 const docElement = document.createElement('div');
                 docElement.className = 'document-item';
                 docElement.innerHTML = `
                     <strong>${doc.title}</strong>
-                    <p>Category: ${doc.category} | Uploaded by: ${doc.uploader}</p>
-                    <p>Downloads: ${doc.downloads}</p>
-                    <button class="btn" onclick="downloadDocument('${doc.id}')">Download</button>
+                    <p>${doc.description}</p>
+                    <div class="document-stats">
+                        <span>📁 ${doc.category}</span>
+                        <span>👤 ${doc.uploader}</span>
+                        <span>📥 ${doc.downloads} downloads</span>
+                        <span>📅 ${new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                    </div>
+                    <button class="btn btn-success" onclick="downloadDocument('${doc.id}')" style="margin-top: 10px;">Download</button>
                 `;
                 documentList.appendChild(docElement);
             });
         }
 
-        // Download document
+        // Download Document
         function downloadDocument(docId) {
             const documents = getDocuments();
             const document = documents.find(doc => doc.id === docId);
             
             if (document) {
+                // Update download count
                 document.downloads = (document.downloads || 0) + 1;
                 saveDocuments(documents);
                 
-                alert(`Downloading: ${document.title}\n\nThis is a demo - in a real app, the file would download.`);
+                // Update user downloads USING YOUR EXISTING USER SYSTEM
+                const userData = getUserData();
+                const downloads = userData.downloads || [];
+                downloads.push({
+                    id: document.id,
+                    title: document.title,
+                    category: document.category,
+                    downloadedAt: new Date().toISOString()
+                });
+                saveUserData({ downloads: downloads });
+                
+                alert(`Downloading: ${document.title}\n\nNote: This is a demo. In a real application, the file would download.`);
+                
+                // Refresh displays
                 loadDocuments();
-                loadStats();
+                loadUserStats();
+                loadPlatformStats();
             }
         }
 
-        // Load stats
-        function loadStats() {
+        // Filter Documents
+        function filterDocuments(category) {
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadDocuments(category);
+        }
+
+        // Search Documents
+        document.getElementById('searchBox').addEventListener('input', function() {
+            const activeCategory = document.querySelector('.category-btn.active').textContent.toLowerCase();
+            loadDocuments(activeCategory === 'all' ? 'all' : activeCategory);
+        });
+
+        // Load Platform Statistics
+        function loadPlatformStats() {
             const documents = getDocuments();
-            const userDocs = documents.filter(doc => doc.uploader === currentUser);
-            const allDownloads = documents.reduce((total, doc) => total + (doc.downloads || 0), 0);
+            const userData = getUserData();
+            const userUploads = userData.uploads || [];
             
-            document.getElementById('uploadCount').textContent = userDocs.length;
-            document.getElementById('downloadCount').textContent = allDownloads;
-        }
-
-        // Search functionality
-        document.getElementById('searchBox').addEventListener('input', loadDocuments);
-
-        // Utility functions
-        function showMessage(text, type) {
-            const status = document.getElementById('uploadStatus');
-            status.textContent = text;
-            status.style.color = type === 'success' ? 'green' : 'red';
-            setTimeout(() => status.textContent = '', 3000);
-        }
-
-        function addSampleDocuments() {
-            const sampleDocs = [
-                {
-                    id: '1',
-                    title: 'Classic Literature Collection',
-                    category: 'novels',
-                    uploader: 'system',
-                    uploadedAt: new Date().toISOString(),
-                    downloads: 15
-                },
-                {
-                    id: '2',
-                    title: 'Mathematics Past Papers 2023',
-                    category: 'pastpapers',
-                    uploader: 'system',
-                    uploadedAt: new Date().toISOString(),
-                    downloads: 8
-                }
-            ];
+            document.getElementById('totalDocuments').textContent = documents.length;
             
-            const currentDocs = getDocuments();
-            sampleDocs.forEach(doc => {
-                if (!currentDocs.find(d => d.id === doc.id)) {
-                    currentDocs.push(doc);
-                }
+            // Calculate popular category
+            const categoryCount = {};
+            documents.forEach(doc => {
+                categoryCount[doc.category] = (categoryCount[doc.category] || 0) + 1;
             });
             
-            saveDocuments(currentDocs);
-            loadDocuments();
-            loadStats();
-            alert('Sample documents added!');
+            const popularCategory = Object.keys(categoryCount).reduce((a, b) => 
+                categoryCount[a] > categoryCount[b] ? a : b, 'None'
+            );
+            
+            document.getElementById('popularCategory').textContent = popularCategory;
+            
+            // Calculate user contribution
+            const userContribution = documents.length > 0 ? 
+                Math.round((userUploads.length / documents.length) * 100) : 0;
+            document.getElementById('userContribution').textContent = userContribution + '%';
         }
 
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all documents?')) {
-                localStorage.removeItem('docshare_documents');
-                loadDocuments();
-                loadStats();
-                alert('All documents cleared!');
-            }
+        // Refresh Stats
+        function refreshStats() {
+            loadPlatformStats();
+            loadUserStats();
+            alert('Statistics updated!');
         }
 
-        // Logout
+        // Logout function - USE YOUR EXISTING SYSTEM
         function logout() {
-            localStorage.removeItem('docshare_current_user');
+            localStorage.removeItem('learnhub_current_user');
             window.location.href = 'index.html';
         }
 
-        // Add sample data on first load
-        window.onload = function() {
+        // Initialize dashboard when page loads
+        initializeDashboard();
+
+        // Add some sample documents if none exist
+        window.addEventListener('load', function() {
             const documents = getDocuments();
             if (documents.length === 0) {
-                addSampleDocuments();
+                const sampleDocuments = [
+                    {
+                        id: '1',
+                        title: 'Classic Literature Collection',
+                        category: 'novels',
+                        description: 'A collection of classic novels from the 19th century',
+                        filename: 'classics.pdf',
+                        fileType: 'application/pdf',
+                        fileSize: 2500000,
+                        uploader: 'admin',
+                        uploadedAt: new Date().toISOString(),
+                        downloads: 45
+                    },
+                    {
+                        id: '2',
+                        title: 'Mathematics Past Papers 2023',
+                        category: 'pastpapers',
+                        description: 'Complete set of mathematics examination papers from 2023',
+                        filename: 'math_papers_2023.pdf',
+                        fileType: 'application/pdf',
+                        fileSize: 1800000,
+                        uploader: 'admin',
+                        uploadedAt: new Date().toISOString(),
+                        downloads: 32
+                    }
+                ];
+                saveDocuments(sampleDocuments);
+                loadDocuments();
             }
-        };
+        });
     </script>
 </body>
 </html>
