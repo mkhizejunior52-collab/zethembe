@@ -1,15 +1,271 @@
-// SECURITY CHECK - MUST BE AT TOP
-if (!localStorage.getItem('learnhub_current_user')) {
-    alert('Please login first!');
-    window.location.href = 'index.html';
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnHub - Secure Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; }
+        input { 
+            width: 100%; padding: 12px; 
+            border: 2px solid #ddd; border-radius: 8px;
+            font-size: 16px;
+        }
+        .btn {
+            width: 100%; background: #667eea;
+            color: white; border: none; padding: 15px;
+            border-radius: 8px; font-size: 16px; cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #5a6fd8; }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .message { 
+            padding: 10px; border-radius: 5px; 
+            margin-bottom: 20px; text-align: center;
+        }
+        .success { background: #d4ffd4; color: green; }
+        .error { background: #ffd4d4; color: red; }
+        .hidden { display: none; }
+        .form-toggle { 
+            text-align: center; margin-top: 20px;
+            padding-top: 20px; border-top: 1px solid #eee;
+        }
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+        }
+        .weak { background: #dc3545; width: 33%; }
+        .medium { background: #ffc107; width: 66%; }
+        .strong { background: #28a745; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+            <div class="logo">
+                <h1>🔐 LearnHub</h1>
+                <p>Secure Learning Portal</p>
+            </div>
+            
+            <div id="loginMessage" class="message hidden"></div>
+            
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+            </form>
+            
+            <div class="form-toggle">
+                <p>Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
+            </div>
+        </div>
 
-// Display username
-const username = localStorage.getItem('learnhub_current_user') || 'Student';
-document.querySelector('.header p').textContent = `Welcome, ${username}!`;
+        <!-- REGISTER FORM -->
+        <div id="registerForm" class="hidden">
+            <div class="logo">
+                <h1>👤 Create Account</h1>
+                <p>Join LearnHub</p>
+            </div>
+            
+            <div id="registerMessage" class="message hidden"></div>
+            
+            <form id="registerFormElement">
+                <div class="form-group">
+                    <label>Username (min 3 characters)</label>
+                    <input type="text" id="registerUsername" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password (min 6 characters)</label>
+                    <input type="password" id="registerPassword" required minlength="6">
+                    <div class="password-strength">
+                        <div class="strength-bar" id="passwordStrength"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            
+            <div class="form-toggle">
+                <p>Already have an account? <a href="#" onclick="showLogin()">Sign in here</a></p>
+            </div>
+        </div>
+    </div>
 
-// Update logout function
-function logout() {
-    localStorage.removeItem('learnhub_current_user');
-    window.location.href = 'index.html';
-}
+    <script>
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginFormElement = document.getElementById('loginFormElement');
+        const registerFormElement = document.getElementById('registerFormElement');
+        const loginMessage = document.getElementById('loginMessage');
+        const registerMessage = document.getElementById('registerMessage');
+        const passwordStrength = document.getElementById('passwordStrength');
+        const registerPassword = document.getElementById('registerPassword');
+
+        // Password strength indicator
+        registerPassword.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 'weak';
+            
+            if (password.length >= 8) {
+                if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
+                    strength = 'strong';
+                } else if (/[A-Z]/.test(password) || /[0-9]/.test(password)) {
+                    strength = 'medium';
+                }
+            }
+            
+            passwordStrength.className = 'strength-bar ' + strength;
+        });
+
+        // Form Toggle Functions
+        function showRegister() {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            clearMessages();
+        }
+
+        function showLogin() {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            clearMessages();
+        }
+
+        function clearMessages() {
+            loginMessage.classList.add('hidden');
+            registerMessage.classList.add('hidden');
+        }
+
+        // User Storage Management
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+        }
+
+        function saveUser(username, userData) {
+            const users = getUsers();
+            users[username] = userData;
+            localStorage.setItem('learnhub_users', JSON.stringify(users));
+        }
+
+        function validateUser(username, password) {
+            const users = getUsers();
+            const user = users[username];
+            return user && user.password === password;
+        }
+
+        // Form Handlers
+        registerFormElement.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validation
+            if (password !== confirmPassword) {
+                showMessage(registerMessage, 'Passwords do not match!', 'error');
+                return;
+            }
+
+            if (getUsers()[username]) {
+                showMessage(registerMessage, 'Username already exists!', 'error');
+                return;
+            }
+
+            // Save user
+            saveUser(username, {
+                username: username,
+                email: email,
+                password: password,
+                createdAt: new Date().toISOString()
+            });
+
+            showMessage(registerMessage, 'Account created successfully! Redirecting...', 'success');
+            
+            // Auto login and redirect
+            setTimeout(() => {
+                localStorage.setItem('learnhub_current_user', username);
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        });
+
+        loginFormElement.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (validateUser(username, password)) {
+                localStorage.setItem('learnhub_current_user', username);
+                showMessage(loginMessage, 'Login successful! Redirecting...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                showMessage(loginMessage, 'Invalid username or password!', 'error');
+            }
+        });
+
+        // Utility Functions
+        function showMessage(element, message, type) {
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.classList.remove('hidden');
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('learnhub_current_user')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
