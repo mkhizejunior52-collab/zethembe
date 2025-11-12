@@ -20,13 +20,13 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
         }
         .logo { text-align: center; margin-bottom: 30px; }
         .logo h1 { color: #333; margin-bottom: 10px; }
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; }
-        input { 
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
+        input, select { 
             width: 100%; padding: 12px; 
             border: 2px solid #ddd; border-radius: 8px;
             font-size: 16px;
@@ -35,31 +35,28 @@
             width: 100%; background: #667eea;
             color: white; border: none; padding: 15px;
             border-radius: 8px; font-size: 16px; cursor: pointer;
-            margin-top: 10px;
+            margin-top: 10px; transition: all 0.3s ease;
         }
-        .btn:hover { background: #5a6fd8; }
-        .btn-secondary {
-            background: #6c757d;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
+        .btn:hover { background: #5a6fd8; transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
         .message { 
-            padding: 10px; border-radius: 5px; 
+            padding: 12px; border-radius: 5px; 
             margin-bottom: 20px; text-align: center;
+            font-weight: 500;
         }
-        .success { background: #d4ffd4; color: green; }
-        .error { background: #ffd4d4; color: red; }
+        .success { background: #d4ffd4; color: green; border: 1px solid #c3e6cb; }
+        .error { background: #ffd4d4; color: red; border: 1px solid #f5c6cb; }
         .hidden { display: none; }
         .form-toggle { 
             text-align: center; margin-top: 20px;
             padding-top: 20px; border-top: 1px solid #eee;
         }
         .password-strength {
-            height: 4px;
+            height: 6px;
             background: #e0e0e0;
-            border-radius: 2px;
-            margin-top: 5px;
+            border-radius: 3px;
+            margin-top: 8px;
             overflow: hidden;
         }
         .strength-bar {
@@ -70,6 +67,25 @@
         .weak { background: #dc3545; width: 33%; }
         .medium { background: #ffc107; width: 66%; }
         .strong { background: #28a745; width: 100%; }
+        .password-requirements {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        .requirement {
+            margin: 2px 0;
+        }
+        .requirement.met { color: #28a745; }
+        .requirement.unmet { color: #dc3545; }
+        .profile-pic-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 3px solid #667eea;
+        }
     </style>
 </head>
 <body>
@@ -96,7 +112,7 @@
             </form>
             
             <div class="form-toggle">
-                <p>Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
+                <p>Don't have an account? <a href="#" onclick="showRegister()" style="color: #667eea; text-decoration: none;">Register here</a></p>
             </div>
         </div>
 
@@ -104,36 +120,62 @@
         <div id="registerForm" class="hidden">
             <div class="logo">
                 <h1>👤 Create Account</h1>
-                <p>Join LearnHub</p>
+                <p>Join LearnHub Community</p>
             </div>
             
             <div id="registerMessage" class="message hidden"></div>
             
             <form id="registerFormElement">
                 <div class="form-group">
+                    <label>Profile Picture</label>
+                    <input type="file" id="profilePicture" accept="image/*" onchange="previewProfilePic(this)">
+                    <img id="profilePicPreview" class="profile-pic-preview hidden" src="">
+                </div>
+                
+                <div class="form-group">
                     <label>Username (min 3 characters)</label>
                     <input type="text" id="registerUsername" required minlength="3">
                 </div>
+                
                 <div class="form-group">
                     <label>Email</label>
                     <input type="email" id="registerEmail" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>Password (min 6 characters)</label>
-                    <input type="password" id="registerPassword" required minlength="6">
+                    <label>Learning Level</label>
+                    <select id="learningLevel" required>
+                        <option value="">Select your level</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" required minlength="6" oninput="checkPasswordRequirements()">
                     <div class="password-strength">
                         <div class="strength-bar" id="passwordStrength"></div>
                     </div>
+                    <div class="password-requirements" id="passwordRequirements">
+                        <div class="requirement unmet" id="reqLength">• At least 6 characters</div>
+                        <div class="requirement unmet" id="reqUppercase">• One uppercase letter</div>
+                        <div class="requirement unmet" id="reqNumber">• One number</div>
+                    </div>
                 </div>
+                
                 <div class="form-group">
                     <label>Confirm Password</label>
-                    <input type="password" id="confirmPassword" required>
+                    <input type="password" id="confirmPassword" required oninput="checkPasswordMatch()">
+                    <div id="passwordMatch" class="password-requirements"></div>
                 </div>
-                <button type="submit" class="btn">Create Account</button>
+                
+                <button type="submit" class="btn" id="registerBtn">Create Account</button>
             </form>
             
             <div class="form-toggle">
-                <p>Already have an account? <a href="#" onclick="showLogin()">Sign in here</a></p>
+                <p>Already have an account? <a href="#" onclick="showLogin()" style="color: #667eea; text-decoration: none;">Sign in here</a></p>
             </div>
         </div>
     </div>
@@ -146,24 +188,6 @@
         const registerFormElement = document.getElementById('registerFormElement');
         const loginMessage = document.getElementById('loginMessage');
         const registerMessage = document.getElementById('registerMessage');
-        const passwordStrength = document.getElementById('passwordStrength');
-        const registerPassword = document.getElementById('registerPassword');
-
-        // Password strength indicator
-        registerPassword.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 'weak';
-            
-            if (password.length >= 8) {
-                if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
-                    strength = 'strong';
-                } else if (/[A-Z]/.test(password) || /[0-9]/.test(password)) {
-                    strength = 'medium';
-                }
-            }
-            
-            passwordStrength.className = 'strength-bar ' + strength;
-        });
 
         // Form Toggle Functions
         function showRegister() {
@@ -181,6 +205,66 @@
         function clearMessages() {
             loginMessage.classList.add('hidden');
             registerMessage.classList.add('hidden');
+        }
+
+        // Profile Picture Preview
+        function previewProfilePic(input) {
+            const preview = document.getElementById('profilePicPreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Password Requirements Check
+        function checkPasswordRequirements() {
+            const password = document.getElementById('registerPassword').value;
+            const strengthBar = document.getElementById('passwordStrength');
+            
+            let strength = 0;
+            let requirements = {
+                length: password.length >= 6,
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+            
+            // Update requirement indicators
+            document.getElementById('reqLength').className = requirements.length ? 'requirement met' : 'requirement unmet';
+            document.getElementById('reqUppercase').className = requirements.uppercase ? 'requirement met' : 'requirement unmet';
+            document.getElementById('reqNumber').className = requirements.number ? 'requirement met' : 'requirement unmet';
+            
+            // Calculate strength
+            if (requirements.length) strength += 33;
+            if (requirements.uppercase) strength += 33;
+            if (requirements.number) strength += 34;
+            
+            // Update strength bar
+            if (strength <= 33) {
+                strengthBar.className = 'strength-bar weak';
+            } else if (strength <= 66) {
+                strengthBar.className = 'strength-bar medium';
+            } else {
+                strengthBar.className = 'strength-bar strong';
+            }
+        }
+
+        // Password Match Check
+        function checkPasswordMatch() {
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const matchElement = document.getElementById('passwordMatch');
+            
+            if (confirmPassword === '') {
+                matchElement.innerHTML = '';
+            } else if (password === confirmPassword) {
+                matchElement.innerHTML = '<div class="requirement met">✓ Passwords match</div>';
+            } else {
+                matchElement.innerHTML = '<div class="requirement unmet">✗ Passwords do not match</div>';
+            }
         }
 
         // User Storage Management
@@ -208,7 +292,24 @@
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const learningLevel = document.getElementById('learningLevel').value;
+            const profilePicInput = document.getElementById('profilePicture');
+            let profilePic = '';
 
+            // Convert profile picture to base64 if available
+            if (profilePicInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePic = e.target.result;
+                    completeRegistration(username, email, password, confirmPassword, learningLevel, profilePic);
+                }
+                reader.readAsDataURL(profilePicInput.files[0]);
+            } else {
+                completeRegistration(username, email, password, confirmPassword, learningLevel, profilePic);
+            }
+        });
+
+        function completeRegistration(username, email, password, confirmPassword, learningLevel, profilePic) {
             // Validation
             if (password !== confirmPassword) {
                 showMessage(registerMessage, 'Passwords do not match!', 'error');
@@ -220,12 +321,21 @@
                 return;
             }
 
-            // Save user
+            // Save user with profile data
             saveUser(username, {
                 username: username,
                 email: email,
                 password: password,
-                createdAt: new Date().toISOString()
+                learningLevel: learningLevel,
+                profilePic: profilePic,
+                createdAt: new Date().toISOString(),
+                progress: {
+                    html: 0,
+                    javascript: 0,
+                    web: 0
+                },
+                notes: [],
+                lastLogin: new Date().toISOString()
             });
 
             showMessage(registerMessage, 'Account created successfully! Redirecting...', 'success');
@@ -235,7 +345,7 @@
                 localStorage.setItem('learnhub_current_user', username);
                 window.location.href = 'dashboard.html';
             }, 1500);
-        });
+        }
 
         loginFormElement.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -244,6 +354,11 @@
             const password = document.getElementById('loginPassword').value;
 
             if (validateUser(username, password)) {
+                // Update last login time
+                const users = getUsers();
+                users[username].lastLogin = new Date().toISOString();
+                localStorage.setItem('learnhub_users', JSON.stringify(users));
+                
                 localStorage.setItem('learnhub_current_user', username);
                 showMessage(loginMessage, 'Login successful! Redirecting...', 'success');
                 
