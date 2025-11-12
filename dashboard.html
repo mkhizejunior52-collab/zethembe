@@ -143,16 +143,16 @@
         </div>
     </div>
 
-    <script>
-        // SECURITY CHECK - MUST BE AT TOP
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            alert('Please login first!');
-            window.location.href = 'index.html';
-        }
+   <script>
+    // SECURITY CHECK - MUST BE AT TOP
+    if (!localStorage.getItem('learnhub_current_user')) {
+        alert('Please login first!');
+        window.location.href = 'index.html';
+    }
 
-        // Display username
-        const username = localStorage.getItem('username') || 'Student';
-        document.querySelector('.header p').textContent = `Welcome, ${username}!`;
+    // Display username
+    const username = localStorage.getItem('learnhub_current_user') || 'Student';
+    document.querySelector('.header p').textContent = `Welcome, ${username}!`;
 
         // Progress functionality
         function updateProgress() {
@@ -220,4 +220,5 @@
         resetTimer();
     </script>
 </body>
+
 </html>
