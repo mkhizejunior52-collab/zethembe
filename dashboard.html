@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocShare - Document Sharing Platform</title>
+    <title>DocShare - Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -16,24 +16,11 @@
             color: white;
             padding: 20px;
             text-align: center;
-            position: relative;
         }
-        .user-profile {
+        .logout-btn {
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-        }
-        .logout-btn {
             background: rgba(255,255,255,0.2);
             color: white;
             border: none;
@@ -41,7 +28,6 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .logout-btn:hover { background: rgba(255,255,255,0.3); }
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -63,19 +49,6 @@
             color: #667eea;
             margin-bottom: 15px;
         }
-        .progress-bar {
-            background: #e0e0e0;
-            border-radius: 10px;
-            height: 10px;
-            margin: 10px 0;
-        }
-        .progress {
-            background: #667eea;
-            height: 100%;
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.5s ease;
-        }
         .btn {
             background: #667eea;
             color: white;
@@ -85,11 +58,6 @@
             cursor: pointer;
             margin: 5px;
         }
-        .btn:hover { background: #5a6fd8; }
-        .btn-success { background: #28a745; }
-        .btn-success:hover { background: #218838; }
-        .btn-warning { background: #ffc107; color: #000; }
-        .btn-warning:hover { background: #e0a800; }
         .document-item {
             background: #f8f9fa;
             padding: 15px;
@@ -97,534 +65,251 @@
             border-radius: 5px;
             border-left: 4px solid #667eea;
         }
-        .document-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #666;
-        }
         .upload-area {
             border: 2px dashed #667eea;
             border-radius: 10px;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             margin: 15px 0;
-            background: #f8f9ff;
-        }
-        .file-input {
-            margin: 10px 0;
-        }
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-        .category-filter {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .category-btn {
-            background: #e9ecef;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .category-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        .user-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="user-profile">
-            <img id="userProfilePic" class="profile-pic" src="" alt="Profile">
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
         <h1>📚 DocShare Platform</h1>
-        <p id="welcomeMessage">Welcome to your document library!</p>
+        <p id="welcomeMessage">Welcome to Document Sharing!</p>
     </div>
 
     <div class="container">
         <div class="dashboard">
-            <!-- User Profile Card -->
-            <div class="card">
-                <h3>👤 Your Profile</h3>
-                <div class="user-info">
-                    <div id="userDetails">Loading...</div>
-                </div>
-                <div>
-                    <strong>Documents Uploaded:</strong> <span id="uploadCount">0</span><br>
-                    <strong>Documents Downloaded:</strong> <span id="downloadCount">0</span><br>
-                    <strong>Member Since:</strong> <span id="memberSince"></span>
-                </div>
-            </div>
-
-            <!-- Upload Documents Card -->
+            <!-- Upload Card -->
             <div class="card">
                 <h3>📤 Upload Documents</h3>
                 <div class="upload-area">
-                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.txt" multiple>
-                    <div>
-                        <input type="text" id="docTitle" placeholder="Document Title" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
-                        <select id="docCategory" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
-                            <option value="novels">Novels & Literature</option>
-                            <option value="pastpapers">Past Papers</option>
-                            <option value="textbooks">Textbooks</option>
-                            <option value="research">Research Papers</option>
-                            <option value="notes">Study Notes</option>
-                            <option value="other">Other</option>
-                        </select>
-                        <textarea id="docDescription" placeholder="Document description..." style="width: 100%; height: 60px; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;"></textarea>
-                    </div>
-                    <button class="btn btn-success" onclick="uploadDocument()">Upload Document</button>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx">
+                    <br><br>
+                    <input type="text" id="docTitle" placeholder="Document Title" style="width: 100%; padding: 10px; margin: 10px 0;">
+                    <select id="docCategory" style="width: 100%; padding: 10px; margin: 10px 0;">
+                        <option value="novels">Novels</option>
+                        <option value="pastpapers">Past Papers</option>
+                        <option value="textbooks">Textbooks</option>
+                    </select>
+                    <button class="btn" onclick="uploadDocument()">Upload Document</button>
                 </div>
-                <div id="uploadStatus" style="margin-top: 10px;"></div>
+                <div id="uploadStatus"></div>
             </div>
 
-            <!-- Document Library Card -->
+            <!-- Document Library -->
             <div class="card">
                 <h3>📚 Document Library</h3>
-                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search documents...">
-                <div class="category-filter">
-                    <button class="category-btn active" onclick="filterDocuments('all')">All</button>
-                    <button class="category-btn" onclick="filterDocuments('novels')">Novels</button>
-                    <button class="category-btn" onclick="filterDocuments('pastpapers')">Past Papers</button>
-                    <button class="category-btn" onclick="filterDocuments('textbooks')">Textbooks</button>
-                    <button class="category-btn" onclick="filterDocuments('research')">Research</button>
-                </div>
+                <input type="text" id="searchBox" placeholder="Search documents..." style="width: 100%; padding: 10px; margin-bottom: 15px;">
                 <div id="documentList">
-                    <!-- Documents will be loaded here -->
+                    <!-- Documents will appear here -->
                 </div>
             </div>
 
-            <!-- Recent Activity Card -->
+            <!-- User Stats -->
             <div class="card">
-                <h3>📊 Your Activity</h3>
-                <p>Upload Progress: <span id="uploadProgress">0%</span></p>
-                <div class="progress-bar">
-                    <div class="progress" id="uploadProgressBar"></div>
-                </div>
-                <p>Download Progress: <span id="downloadProgress">0%</span></p>
-                <div class="progress-bar">
-                    <div class="progress" id="downloadProgressBar"></div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h4>Recent Downloads</h4>
-                    <div id="recentDownloads"></div>
-                </div>
+                <h3>📊 Your Stats</h3>
+                <p>Documents Uploaded: <span id="uploadCount">0</span></p>
+                <p>Documents Downloaded: <span id="downloadCount">0</span></p>
+                <button class="btn" onclick="loadStats()">Refresh Stats</button>
             </div>
 
-            <!-- Quick Stats Card -->
+            <!-- Quick Actions -->
             <div class="card">
-                <h3>📈 Platform Stats</h3>
-                <div class="document-item">
-                    <strong>Total Documents</strong>
-                    <div class="document-stats">
-                        <span id="totalDocuments">0</span>
-                    </div>
-                </div>
-                <div class="document-item">
-                    <strong>Most Popular Category</strong>
-                    <div class="document-stats">
-                        <span id="popularCategory">Loading...</span>
-                    </div>
-                </div>
-                <div class="document-item">
-                    <strong>Your Contribution</strong>
-                    <div class="document-stats">
-                        <span id="userContribution">0%</span>
-                    </div>
-                </div>
-                <button class="btn btn-warning" onclick="refreshStats()">Refresh Stats</button>
-            </div>
-
-            <!-- Featured Documents Card -->
-            <div class="card">
-                <h3>⭐ Featured Documents</h3>
-                <div id="featuredDocuments">
-                    <div class="document-item">
-                        <strong>Sample Novel Collection</strong>
-                        <p>Classic literature compilation</p>
-                        <div class="document-stats">
-                            <span>📚 Novels</span>
-                            <span>📥 156 downloads</span>
-                        </div>
-                    </div>
-                    <div class="document-item">
-                        <strong>2023 Past Papers Archive</strong>
-                        <p>Recent examination papers</p>
-                        <div class="document-stats">
-                            <span>📝 Past Papers</span>
-                            <span>📥 89 downloads</span>
-                        </div>
-                    </div>
-                </div>
+                <h3>⚡ Quick Actions</h3>
+                <button class="btn" onclick="addSampleDocuments()">Add Sample Documents</button>
+                <button class="btn" onclick="clearAllData()">Clear All Data</button>
             </div>
         </div>
     </div>
 
     <script>
-        // SECURITY CHECK - MUST BE AT TOP
+        // SECURITY CHECK
         const currentUser = localStorage.getItem('docshare_current_user');
         if (!currentUser) {
             alert('Please login first!');
             window.location.href = 'index.html';
         }
 
-        // Document Storage Management
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded for user:', currentUser);
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser}!`;
+            loadDocuments();
+            loadStats();
+        });
+
+        // Document storage
         function getDocuments() {
-            return JSON.parse(localStorage.getItem('docshare_documents') || '[]');
+            const docs = localStorage.getItem('docshare_documents');
+            console.log('Loaded documents:', docs);
+            return docs ? JSON.parse(docs) : [];
         }
 
         function saveDocuments(documents) {
             localStorage.setItem('docshare_documents', JSON.stringify(documents));
         }
 
-        function getUserData() {
-            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
-            return users[currentUser] || {};
-        }
-
-        function saveUserData(userData) {
-            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
-            users[currentUser] = { ...getUserData(), ...userData };
-            localStorage.setItem('docshare_users', JSON.stringify(users));
-        }
-
-        // Initialize Dashboard
-        function initializeDashboard() {
-            const userData = getUserData();
-            
-            // Display user info
-            document.getElementById('welcomeMessage').textContent = `Welcome back, ${currentUser}!`;
-            
-            // Profile picture
-            if (userData.profilePic) {
-                document.getElementById('userProfilePic').src = userData.profilePic;
-            }
-            
-            // User details
-            document.getElementById('userDetails').innerHTML = `
-                <strong>Username:</strong> ${userData.username}<br>
-                <strong>Role:</strong> ${userData.userType || 'User'}<br>
-                <strong>Email:</strong> ${userData.email}
-            `;
-            
-            // Member since
-            if (userData.createdAt) {
-                const created = new Date(userData.createdAt);
-                document.getElementById('memberSince').textContent = created.toLocaleDateString();
-            }
-            
-            // Load user stats
-            loadUserStats();
-            
-            // Load documents
-            loadDocuments();
-            
-            // Load platform stats
-            loadPlatformStats();
-        }
-
-        // Load User Statistics
-        function loadUserStats() {
-            const userData = getUserData();
-            const uploads = userData.uploads || [];
-            const downloads = userData.downloads || [];
-            
-            document.getElementById('uploadCount').textContent = uploads.length;
-            document.getElementById('downloadCount').textContent = downloads.length;
-            
-            // Calculate progress (example: based on activity)
-            const uploadProgress = Math.min(100, uploads.length * 10);
-            const downloadProgress = Math.min(100, downloads.length * 5);
-            
-            document.getElementById('uploadProgress').textContent = uploadProgress + '%';
-            document.getElementById('downloadProgress').textContent = downloadProgress + '%';
-            document.getElementById('uploadProgressBar').style.width = uploadProgress + '%';
-            document.getElementById('downloadProgressBar').style.width = downloadProgress + '%';
-            
-            // Load recent downloads
-            loadRecentDownloads();
-        }
-
-        // Load Recent Downloads
-        function loadRecentDownloads() {
-            const userData = getUserData();
-            const downloads = userData.downloads || [];
-            const recentDownloads = downloads.slice(-3).reverse();
-            
-            const downloadsDiv = document.getElementById('recentDownloads');
-            downloadsDiv.innerHTML = '';
-            
-            recentDownloads.forEach(download => {
-                const downloadElement = document.createElement('div');
-                downloadElement.className = 'document-item';
-                downloadElement.innerHTML = `
-                    <strong>${download.title}</strong>
-                    <div class="document-stats">
-                        <span>${download.category}</span>
-                        <span>${new Date(download.downloadedAt).toLocaleDateString()}</span>
-                    </div>
-                `;
-                downloadsDiv.appendChild(downloadElement);
-            });
-        }
-
-        // Upload Document Function
+        // Upload document
         function uploadDocument() {
-            const fileInput = document.getElementById('fileInput');
-            const titleInput = document.getElementById('docTitle');
-            const categoryInput = document.getElementById('docCategory');
-            const descriptionInput = document.getElementById('docDescription');
-            
-            const title = titleInput.value.trim();
-            const category = categoryInput.value;
-            const description = descriptionInput.value.trim();
-            const files = fileInput.files;
+            const title = document.getElementById('docTitle').value;
+            const category = document.getElementById('docCategory').value;
             
             if (!title) {
-                showUploadStatus('Please enter a document title', 'error');
+                alert('Please enter a document title');
                 return;
             }
-            
-            if (files.length === 0) {
-                showUploadStatus('Please select a file to upload', 'error');
-                return;
-            }
-            
-            // Create document object
-            const document = {
+
+            const documents = getDocuments();
+            const newDoc = {
                 id: Date.now().toString(),
                 title: title,
                 category: category,
-                description: description,
-                filename: files[0].name,
-                fileType: files[0].type,
-                fileSize: files[0].size,
                 uploader: currentUser,
                 uploadedAt: new Date().toISOString(),
-                downloads: 0,
-                rating: 0
+                downloads: 0
             };
-            
-            // Save document
-            const documents = getDocuments();
-            documents.push(document);
+
+            documents.push(newDoc);
             saveDocuments(documents);
+
+            document.getElementById('docTitle').value = '';
+            document.getElementById('fileInput').value = '';
             
-            // Update user uploads
-            const userData = getUserData();
-            const uploads = userData.uploads || [];
-            uploads.push({
-                id: document.id,
-                title: document.title,
-                category: document.category,
-                uploadedAt: document.uploadedAt
-            });
-            saveUserData({ uploads: uploads });
-            
-            // Clear form
-            titleInput.value = '';
-            descriptionInput.value = '';
-            fileInput.value = '';
-            
-            showUploadStatus('Document uploaded successfully!', 'success');
+            showMessage('Document uploaded successfully!', 'success');
             loadDocuments();
-            loadUserStats();
-            loadPlatformStats();
+            loadStats();
         }
 
-        // Show Upload Status
-        function showUploadStatus(message, type) {
-            const statusDiv = document.getElementById('uploadStatus');
-            statusDiv.textContent = message;
-            statusDiv.className = type === 'success' ? 'message success' : 'message error';
-            statusDiv.classList.remove('hidden');
-            
-            setTimeout(() => {
-                statusDiv.classList.add('hidden');
-            }, 3000);
-        }
-
-        // Load Documents
-        function loadDocuments(filterCategory = 'all') {
+        // Load documents
+        function loadDocuments() {
             const documents = getDocuments();
             const documentList = document.getElementById('documentList');
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
+
             documentList.innerHTML = '';
-            
-            const filteredDocs = documents.filter(doc => {
-                const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
-                const matchesSearch = doc.title.toLowerCase().includes(searchTerm) || 
-                                    doc.description.toLowerCase().includes(searchTerm);
-                return matchesCategory && matchesSearch;
-            });
-            
+
+            if (documents.length === 0) {
+                documentList.innerHTML = '<div class="document-item">No documents yet. Upload some documents!</div>';
+                return;
+            }
+
+            const filteredDocs = documents.filter(doc => 
+                doc.title.toLowerCase().includes(searchTerm)
+            );
+
             if (filteredDocs.length === 0) {
                 documentList.innerHTML = '<div class="document-item">No documents found</div>';
                 return;
             }
-            
+
             filteredDocs.forEach(doc => {
                 const docElement = document.createElement('div');
                 docElement.className = 'document-item';
                 docElement.innerHTML = `
                     <strong>${doc.title}</strong>
-                    <p>${doc.description}</p>
-                    <div class="document-stats">
-                        <span>📁 ${doc.category}</span>
-                        <span>👤 ${doc.uploader}</span>
-                        <span>📥 ${doc.downloads} downloads</span>
-                        <span>📅 ${new Date(doc.uploadedAt).toLocaleDateString()}</span>
-                    </div>
-                    <button class="btn btn-success" onclick="downloadDocument('${doc.id}')" style="margin-top: 10px;">Download</button>
+                    <p>Category: ${doc.category} | Uploaded by: ${doc.uploader}</p>
+                    <p>Downloads: ${doc.downloads}</p>
+                    <button class="btn" onclick="downloadDocument('${doc.id}')">Download</button>
                 `;
                 documentList.appendChild(docElement);
             });
         }
 
-        // Download Document
+        // Download document
         function downloadDocument(docId) {
             const documents = getDocuments();
             const document = documents.find(doc => doc.id === docId);
             
             if (document) {
-                // Update download count
                 document.downloads = (document.downloads || 0) + 1;
                 saveDocuments(documents);
                 
-                // Update user downloads
-                const userData = getUserData();
-                const downloads = userData.downloads || [];
-                downloads.push({
-                    id: document.id,
-                    title: document.title,
-                    category: document.category,
-                    downloadedAt: new Date().toISOString()
-                });
-                saveUserData({ downloads: downloads });
-                
-                alert(`Downloading: ${document.title}\n\nNote: This is a demo. In a real application, the file would download.`);
-                
-                // Refresh displays
+                alert(`Downloading: ${document.title}\n\nThis is a demo - in a real app, the file would download.`);
                 loadDocuments();
-                loadUserStats();
-                loadPlatformStats();
+                loadStats();
             }
         }
 
-        // Filter Documents
-        function filterDocuments(category) {
-            // Update active button
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            loadDocuments(category);
-        }
-
-        // Search Documents
-        document.getElementById('searchBox').addEventListener('input', function() {
-            const activeCategory = document.querySelector('.category-btn.active').textContent.toLowerCase();
-            loadDocuments(activeCategory === 'all' ? 'all' : activeCategory);
-        });
-
-        // Load Platform Statistics
-        function loadPlatformStats() {
+        // Load stats
+        function loadStats() {
             const documents = getDocuments();
-            const userData = getUserData();
-            const userUploads = userData.uploads || [];
+            const userDocs = documents.filter(doc => doc.uploader === currentUser);
+            const allDownloads = documents.reduce((total, doc) => total + (doc.downloads || 0), 0);
             
-            document.getElementById('totalDocuments').textContent = documents.length;
+            document.getElementById('uploadCount').textContent = userDocs.length;
+            document.getElementById('downloadCount').textContent = allDownloads;
+        }
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', loadDocuments);
+
+        // Utility functions
+        function showMessage(text, type) {
+            const status = document.getElementById('uploadStatus');
+            status.textContent = text;
+            status.style.color = type === 'success' ? 'green' : 'red';
+            setTimeout(() => status.textContent = '', 3000);
+        }
+
+        function addSampleDocuments() {
+            const sampleDocs = [
+                {
+                    id: '1',
+                    title: 'Classic Literature Collection',
+                    category: 'novels',
+                    uploader: 'system',
+                    uploadedAt: new Date().toISOString(),
+                    downloads: 15
+                },
+                {
+                    id: '2',
+                    title: 'Mathematics Past Papers 2023',
+                    category: 'pastpapers',
+                    uploader: 'system',
+                    uploadedAt: new Date().toISOString(),
+                    downloads: 8
+                }
+            ];
             
-            // Calculate popular category
-            const categoryCount = {};
-            documents.forEach(doc => {
-                categoryCount[doc.category] = (categoryCount[doc.category] || 0) + 1;
+            const currentDocs = getDocuments();
+            sampleDocs.forEach(doc => {
+                if (!currentDocs.find(d => d.id === doc.id)) {
+                    currentDocs.push(doc);
+                }
             });
             
-            const popularCategory = Object.keys(categoryCount).reduce((a, b) => 
-                categoryCount[a] > categoryCount[b] ? a : b, 'None'
-            );
-            
-            document.getElementById('popularCategory').textContent = popularCategory;
-            
-            // Calculate user contribution
-            const userContribution = documents.length > 0 ? 
-                Math.round((userUploads.length / documents.length) * 100) : 0;
-            document.getElementById('userContribution').textContent = userContribution + '%';
+            saveDocuments(currentDocs);
+            loadDocuments();
+            loadStats();
+            alert('Sample documents added!');
         }
 
-        // Refresh Stats
-        function refreshStats() {
-            loadPlatformStats();
-            loadUserStats();
-            alert('Statistics updated!');
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all documents?')) {
+                localStorage.removeItem('docshare_documents');
+                loadDocuments();
+                loadStats();
+                alert('All documents cleared!');
+            }
         }
 
-        // Logout function
+        // Logout
         function logout() {
             localStorage.removeItem('docshare_current_user');
             window.location.href = 'index.html';
         }
 
-        // Initialize dashboard when page loads
-        initializeDashboard();
-
-        // Add some sample documents if none exist
-        window.addEventListener('load', function() {
+        // Add sample data on first load
+        window.onload = function() {
             const documents = getDocuments();
             if (documents.length === 0) {
-                const sampleDocuments = [
-                    {
-                        id: '1',
-                        title: 'Classic Literature Collection',
-                        category: 'novels',
-                        description: 'A collection of classic novels from the 19th century',
-                        filename: 'classics.pdf',
-                        fileType: 'application/pdf',
-                        fileSize: 2500000,
-                        uploader: 'admin',
-                        uploadedAt: new Date().toISOString(),
-                        downloads: 45,
-                        rating: 4.5
-                    },
-                    {
-                        id: '2',
-                        title: 'Mathematics Past Papers 2023',
-                        category: 'pastpapers',
-                        description: 'Complete set of mathematics examination papers from 2023',
-                        filename: 'math_papers_2023.pdf',
-                        fileType: 'application/pdf',
-                        fileSize: 1800000,
-                        uploader: 'admin',
-                        uploadedAt: new Date().toISOString(),
-                        downloads: 32,
-                        rating: 4.2
-                    }
-                ];
-                saveDocuments(sampleDocuments);
-                loadDocuments();
+                addSampleDocuments();
             }
-        });
+        };
     </script>
 </body>
 </html>
