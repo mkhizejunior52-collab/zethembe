@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LearnHub - Learning Dashboard</title>
+    <title>DocShare - Document Sharing Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -86,19 +86,59 @@
             margin: 5px;
         }
         .btn:hover { background: #5a6fd8; }
-        .resource-item {
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-warning:hover { background: #e0a800; }
+        .document-item {
             background: #f8f9fa;
             padding: 15px;
             margin: 10px 0;
             border-radius: 5px;
             border-left: 4px solid #667eea;
         }
-        .note-item {
-            background: #fff9c4;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border-left: 4px solid #ffd54f;
+        .document-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            background: #f8f9ff;
+        }
+        .file-input {
+            margin: 10px 0;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .category-btn.active {
+            background: #667eea;
+            color: white;
         }
         .user-info {
             background: #e3f2fd;
@@ -114,8 +154,8 @@
             <img id="userProfilePic" class="profile-pic" src="" alt="Profile">
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
-        <h1>🚀 LearnHub Dashboard</h1>
-        <p id="welcomeMessage">Welcome back!</p>
+        <h1>📚 DocShare Platform</h1>
+        <p id="welcomeMessage">Welcome to your document library!</p>
     </div>
 
     <div class="container">
@@ -127,106 +167,146 @@
                     <div id="userDetails">Loading...</div>
                 </div>
                 <div>
-                    <strong>Account Created:</strong> <span id="accountAge"></span><br>
-                    <strong>Last Login:</strong> <span id="lastLogin"></span>
+                    <strong>Documents Uploaded:</strong> <span id="uploadCount">0</span><br>
+                    <strong>Documents Downloaded:</strong> <span id="downloadCount">0</span><br>
+                    <strong>Member Since:</strong> <span id="memberSince"></span>
                 </div>
             </div>
 
-            <!-- Progress Card -->
+            <!-- Upload Documents Card -->
             <div class="card">
-                <h3>📊 Your Learning Progress</h3>
-                <p>HTML & CSS: <span id="htmlPercent">0%</span></p>
+                <h3>📤 Upload Documents</h3>
+                <div class="upload-area">
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.txt" multiple>
+                    <div>
+                        <input type="text" id="docTitle" placeholder="Document Title" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+                        <select id="docCategory" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="novels">Novels & Literature</option>
+                            <option value="pastpapers">Past Papers</option>
+                            <option value="textbooks">Textbooks</option>
+                            <option value="research">Research Papers</option>
+                            <option value="notes">Study Notes</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <textarea id="docDescription" placeholder="Document description..." style="width: 100%; height: 60px; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="uploadDocument()">Upload Document</button>
+                </div>
+                <div id="uploadStatus" style="margin-top: 10px;"></div>
+            </div>
+
+            <!-- Document Library Card -->
+            <div class="card">
+                <h3>📚 Document Library</h3>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search documents...">
+                <div class="category-filter">
+                    <button class="category-btn active" onclick="filterDocuments('all')">All</button>
+                    <button class="category-btn" onclick="filterDocuments('novels')">Novels</button>
+                    <button class="category-btn" onclick="filterDocuments('pastpapers')">Past Papers</button>
+                    <button class="category-btn" onclick="filterDocuments('textbooks')">Textbooks</button>
+                    <button class="category-btn" onclick="filterDocuments('research')">Research</button>
+                </div>
+                <div id="documentList">
+                    <!-- Documents will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="card">
+                <h3>📊 Your Activity</h3>
+                <p>Upload Progress: <span id="uploadProgress">0%</span></p>
                 <div class="progress-bar">
-                    <div class="progress" id="htmlProgress"></div>
+                    <div class="progress" id="uploadProgressBar"></div>
                 </div>
-                <p>JavaScript: <span id="jsPercent">0%</span></p>
+                <p>Download Progress: <span id="downloadProgress">0%</span></p>
                 <div class="progress-bar">
-                    <div class="progress" id="jsProgress"></div>
+                    <div class="progress" id="downloadProgressBar"></div>
                 </div>
-                <p>Web Development: <span id="webPercent">0%</span></p>
-                <div class="progress-bar">
-                    <div class="progress" id="webProgress"></div>
-                </div>
-                <button class="btn" onclick="updateProgress(10)">+10%</button>
-                <button class="btn" onclick="updateProgress(-10)">-10%</button>
-                <button class="btn" onclick="resetProgress()">Reset</button>
-            </div>
-
-            <!-- Study Timer -->
-            <div class="card">
-                <h3>⏰ Study Timer</h3>
-                <div style="font-size: 2rem; text-align: center; margin: 15px 0;" id="timer">25:00</div>
-                <div style="text-align: center;">
-                    <button class="btn" onclick="startTimer(25)">25 Min</button>
-                    <button class="btn" onclick="startTimer(5)">5 Min</button>
-                    <button class="btn" onclick="resetTimer()">Reset</button>
-                </div>
-                <div style="margin-top: 15px;">
-                    <strong>Total Study Time:</strong> <span id="totalStudyTime">0 minutes</span>
+                
+                <div style="margin-top: 20px;">
+                    <h4>Recent Downloads</h4>
+                    <div id="recentDownloads"></div>
                 </div>
             </div>
 
-            <!-- Resources -->
+            <!-- Quick Stats Card -->
             <div class="card">
-                <h3>📚 Learning Resources</h3>
-                <div class="resource-item">
-                    <strong>MDN Web Docs</strong>
-                    <p>Best web development documentation</p>
+                <h3>📈 Platform Stats</h3>
+                <div class="document-item">
+                    <strong>Total Documents</strong>
+                    <div class="document-stats">
+                        <span id="totalDocuments">0</span>
+                    </div>
                 </div>
-                <div class="resource-item">
-                    <strong>FreeCodeCamp</strong>
-                    <p>Free coding tutorials</p>
+                <div class="document-item">
+                    <strong>Most Popular Category</strong>
+                    <div class="document-stats">
+                        <span id="popularCategory">Loading...</span>
+                    </div>
                 </div>
-                <div class="resource-item">
-                    <strong>W3Schools</strong>
-                    <p>Beginner-friendly tutorials</p>
+                <div class="document-item">
+                    <strong>Your Contribution</strong>
+                    <div class="document-stats">
+                        <span id="userContribution">0%</span>
+                    </div>
                 </div>
+                <button class="btn btn-warning" onclick="refreshStats()">Refresh Stats</button>
             </div>
 
-            <!-- Notes -->
+            <!-- Featured Documents Card -->
             <div class="card">
-                <h3>📝 Your Notes</h3>
-                <textarea id="notes" placeholder="Take your learning notes here..." 
-                         style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;"></textarea>
-                <button class="btn" onclick="saveNote()">Save Note</button>
-                <div id="savedNotes" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- Goals -->
-            <div class="card">
-                <h3>🎯 Weekly Goals</h3>
-                <ul style="margin-left: 20px; margin-top: 10px;">
-                    <li>Complete 3 coding exercises</li>
-                    <li>Learn 2 new CSS properties</li>
-                    <li>Build one small project</li>
-                    <li>Read documentation for 30 minutes</li>
-                </ul>
-                <button class="btn" onclick="addGoal()" style="margin-top: 15px;">Add New Goal</button>
+                <h3>⭐ Featured Documents</h3>
+                <div id="featuredDocuments">
+                    <div class="document-item">
+                        <strong>Sample Novel Collection</strong>
+                        <p>Classic literature compilation</p>
+                        <div class="document-stats">
+                            <span>📚 Novels</span>
+                            <span>📥 156 downloads</span>
+                        </div>
+                    </div>
+                    <div class="document-item">
+                        <strong>2023 Past Papers Archive</strong>
+                        <p>Recent examination papers</p>
+                        <div class="document-stats">
+                            <span>📝 Past Papers</span>
+                            <span>📥 89 downloads</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         // SECURITY CHECK - MUST BE AT TOP
-        const currentUser = localStorage.getItem('learnhub_current_user');
+        const currentUser = localStorage.getItem('docshare_current_user');
         if (!currentUser) {
             alert('Please login first!');
             window.location.href = 'index.html';
         }
 
-        // User Data Management
+        // Document Storage Management
+        function getDocuments() {
+            return JSON.parse(localStorage.getItem('docshare_documents') || '[]');
+        }
+
+        function saveDocuments(documents) {
+            localStorage.setItem('docshare_documents', JSON.stringify(documents));
+        }
+
         function getUserData() {
-            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
             return users[currentUser] || {};
         }
 
         function saveUserData(userData) {
-            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
             users[currentUser] = { ...getUserData(), ...userData };
-            localStorage.setItem('learnhub_users', JSON.stringify(users));
+            localStorage.setItem('docshare_users', JSON.stringify(users));
         }
 
-        // Initialize User Interface
+        // Initialize Dashboard
         function initializeDashboard() {
             const userData = getUserData();
             
@@ -241,158 +321,310 @@
             // User details
             document.getElementById('userDetails').innerHTML = `
                 <strong>Username:</strong> ${userData.username}<br>
-                <strong>Email:</strong> ${userData.email}<br>
-                <strong>Level:</strong> ${userData.learningLevel || 'Not set'}
+                <strong>Role:</strong> ${userData.userType || 'User'}<br>
+                <strong>Email:</strong> ${userData.email}
             `;
             
-            // Account dates
+            // Member since
             if (userData.createdAt) {
                 const created = new Date(userData.createdAt);
-                document.getElementById('accountAge').textContent = created.toLocaleDateString();
-            }
-            if (userData.lastLogin) {
-                const lastLogin = new Date(userData.lastLogin);
-                document.getElementById('lastLogin').textContent = lastLogin.toLocaleString();
+                document.getElementById('memberSince').textContent = created.toLocaleDateString();
             }
             
-            // Load progress
-            loadProgress();
+            // Load user stats
+            loadUserStats();
             
-            // Load notes
-            loadNotes();
+            // Load documents
+            loadDocuments();
             
-            // Load study time
-            loadStudyTime();
+            // Load platform stats
+            loadPlatformStats();
         }
 
-        // Progress Management
-        function loadProgress() {
+        // Load User Statistics
+        function loadUserStats() {
             const userData = getUserData();
-            const progress = userData.progress || { html: 0, javascript: 0, web: 0 };
+            const uploads = userData.uploads || [];
+            const downloads = userData.downloads || [];
             
-            document.getElementById('htmlProgress').style.width = progress.html + '%';
-            document.getElementById('jsProgress').style.width = progress.javascript + '%';
-            document.getElementById('webProgress').style.width = progress.web + '%';
-            document.getElementById('htmlPercent').textContent = progress.html + '%';
-            document.getElementById('jsPercent').textContent = progress.javascript + '%';
-            document.getElementById('webPercent').textContent = progress.web + '%';
+            document.getElementById('uploadCount').textContent = uploads.length;
+            document.getElementById('downloadCount').textContent = downloads.length;
+            
+            // Calculate progress (example: based on activity)
+            const uploadProgress = Math.min(100, uploads.length * 10);
+            const downloadProgress = Math.min(100, downloads.length * 5);
+            
+            document.getElementById('uploadProgress').textContent = uploadProgress + '%';
+            document.getElementById('downloadProgress').textContent = downloadProgress + '%';
+            document.getElementById('uploadProgressBar').style.width = uploadProgress + '%';
+            document.getElementById('downloadProgressBar').style.width = downloadProgress + '%';
+            
+            // Load recent downloads
+            loadRecentDownloads();
         }
 
-        function updateProgress(amount) {
+        // Load Recent Downloads
+        function loadRecentDownloads() {
             const userData = getUserData();
-            const progress = userData.progress || { html: 0, javascript: 0, web: 0 };
+            const downloads = userData.downloads || [];
+            const recentDownloads = downloads.slice(-3).reverse();
             
-            progress.html = Math.max(0, Math.min(100, progress.html + amount));
-            progress.javascript = Math.max(0, Math.min(100, progress.javascript + amount));
-            progress.web = Math.max(0, Math.min(100, progress.web + amount));
+            const downloadsDiv = document.getElementById('recentDownloads');
+            downloadsDiv.innerHTML = '';
             
-            saveUserData({ progress: progress });
-            loadProgress();
-        }
-
-        function resetProgress() {
-            if (confirm('Are you sure you want to reset all progress?')) {
-                saveUserData({ 
-                    progress: { html: 0, javascript: 0, web: 0 } 
-                });
-                loadProgress();
-            }
-        }
-
-        // Notes Management
-        function loadNotes() {
-            const userData = getUserData();
-            const notes = userData.notes || [];
-            const notesDiv = document.getElementById('savedNotes');
-            
-            notesDiv.innerHTML = '';
-            notes.slice(-5).reverse().forEach(note => {
-                const noteElement = document.createElement('div');
-                noteElement.className = 'note-item';
-                noteElement.innerHTML = `
-                    <p>${note.text}</p>
-                    <small>${new Date(note.timestamp).toLocaleString()}</small>
+            recentDownloads.forEach(download => {
+                const downloadElement = document.createElement('div');
+                downloadElement.className = 'document-item';
+                downloadElement.innerHTML = `
+                    <strong>${download.title}</strong>
+                    <div class="document-stats">
+                        <span>${download.category}</span>
+                        <span>${new Date(download.downloadedAt).toLocaleDateString()}</span>
+                    </div>
                 `;
-                notesDiv.appendChild(noteElement);
+                downloadsDiv.appendChild(downloadElement);
             });
         }
 
-        function saveNote() {
-            const noteInput = document.getElementById('notes');
-            const note = noteInput.value.trim();
+        // Upload Document Function
+        function uploadDocument() {
+            const fileInput = document.getElementById('fileInput');
+            const titleInput = document.getElementById('docTitle');
+            const categoryInput = document.getElementById('docCategory');
+            const descriptionInput = document.getElementById('docDescription');
             
-            if (note) {
+            const title = titleInput.value.trim();
+            const category = categoryInput.value;
+            const description = descriptionInput.value.trim();
+            const files = fileInput.files;
+            
+            if (!title) {
+                showUploadStatus('Please enter a document title', 'error');
+                return;
+            }
+            
+            if (files.length === 0) {
+                showUploadStatus('Please select a file to upload', 'error');
+                return;
+            }
+            
+            // Create document object
+            const document = {
+                id: Date.now().toString(),
+                title: title,
+                category: category,
+                description: description,
+                filename: files[0].name,
+                fileType: files[0].type,
+                fileSize: files[0].size,
+                uploader: currentUser,
+                uploadedAt: new Date().toISOString(),
+                downloads: 0,
+                rating: 0
+            };
+            
+            // Save document
+            const documents = getDocuments();
+            documents.push(document);
+            saveDocuments(documents);
+            
+            // Update user uploads
+            const userData = getUserData();
+            const uploads = userData.uploads || [];
+            uploads.push({
+                id: document.id,
+                title: document.title,
+                category: document.category,
+                uploadedAt: document.uploadedAt
+            });
+            saveUserData({ uploads: uploads });
+            
+            // Clear form
+            titleInput.value = '';
+            descriptionInput.value = '';
+            fileInput.value = '';
+            
+            showUploadStatus('Document uploaded successfully!', 'success');
+            loadDocuments();
+            loadUserStats();
+            loadPlatformStats();
+        }
+
+        // Show Upload Status
+        function showUploadStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = type === 'success' ? 'message success' : 'message error';
+            statusDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Load Documents
+        function loadDocuments(filterCategory = 'all') {
+            const documents = getDocuments();
+            const documentList = document.getElementById('documentList');
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            documentList.innerHTML = '';
+            
+            const filteredDocs = documents.filter(doc => {
+                const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
+                const matchesSearch = doc.title.toLowerCase().includes(searchTerm) || 
+                                    doc.description.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+            
+            if (filteredDocs.length === 0) {
+                documentList.innerHTML = '<div class="document-item">No documents found</div>';
+                return;
+            }
+            
+            filteredDocs.forEach(doc => {
+                const docElement = document.createElement('div');
+                docElement.className = 'document-item';
+                docElement.innerHTML = `
+                    <strong>${doc.title}</strong>
+                    <p>${doc.description}</p>
+                    <div class="document-stats">
+                        <span>📁 ${doc.category}</span>
+                        <span>👤 ${doc.uploader}</span>
+                        <span>📥 ${doc.downloads} downloads</span>
+                        <span>📅 ${new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                    </div>
+                    <button class="btn btn-success" onclick="downloadDocument('${doc.id}')" style="margin-top: 10px;">Download</button>
+                `;
+                documentList.appendChild(docElement);
+            });
+        }
+
+        // Download Document
+        function downloadDocument(docId) {
+            const documents = getDocuments();
+            const document = documents.find(doc => doc.id === docId);
+            
+            if (document) {
+                // Update download count
+                document.downloads = (document.downloads || 0) + 1;
+                saveDocuments(documents);
+                
+                // Update user downloads
                 const userData = getUserData();
-                const notes = userData.notes || [];
-                
-                notes.push({
-                    text: note,
-                    timestamp: new Date().toISOString()
+                const downloads = userData.downloads || [];
+                downloads.push({
+                    id: document.id,
+                    title: document.title,
+                    category: document.category,
+                    downloadedAt: new Date().toISOString()
                 });
+                saveUserData({ downloads: downloads });
                 
-                saveUserData({ notes: notes });
-                noteInput.value = '';
-                loadNotes();
+                alert(`Downloading: ${document.title}\n\nNote: This is a demo. In a real application, the file would download.`);
+                
+                // Refresh displays
+                loadDocuments();
+                loadUserStats();
+                loadPlatformStats();
             }
         }
 
-        // Study Timer
-        let timerInterval;
-        let totalStudyTime = parseInt(localStorage.getItem(`study_time_${currentUser}`) || '0');
-
-        function loadStudyTime() {
-            document.getElementById('totalStudyTime').textContent = totalStudyTime + ' minutes';
-        }
-
-        function startTimer(minutes) {
-            clearInterval(timerInterval);
-            let timeLeft = minutes * 60;
-            updateTimerDisplay(timeLeft);
+        // Filter Documents
+        function filterDocuments(category) {
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
             
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimerDisplay(timeLeft);
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    totalStudyTime += minutes;
-                    localStorage.setItem(`study_time_${currentUser}`, totalStudyTime.toString());
-                    loadStudyTime();
-                    alert('⏰ Time\'s up! Great job studying! 🎉');
-                }
-            }, 1000);
+            loadDocuments(category);
         }
 
-        function resetTimer() {
-            clearInterval(timerInterval);
-            updateTimerDisplay(25 * 60);
+        // Search Documents
+        document.getElementById('searchBox').addEventListener('input', function() {
+            const activeCategory = document.querySelector('.category-btn.active').textContent.toLowerCase();
+            loadDocuments(activeCategory === 'all' ? 'all' : activeCategory);
+        });
+
+        // Load Platform Statistics
+        function loadPlatformStats() {
+            const documents = getDocuments();
+            const userData = getUserData();
+            const userUploads = userData.uploads || [];
+            
+            document.getElementById('totalDocuments').textContent = documents.length;
+            
+            // Calculate popular category
+            const categoryCount = {};
+            documents.forEach(doc => {
+                categoryCount[doc.category] = (categoryCount[doc.category] || 0) + 1;
+            });
+            
+            const popularCategory = Object.keys(categoryCount).reduce((a, b) => 
+                categoryCount[a] > categoryCount[b] ? a : b, 'None'
+            );
+            
+            document.getElementById('popularCategory').textContent = popularCategory;
+            
+            // Calculate user contribution
+            const userContribution = documents.length > 0 ? 
+                Math.round((userUploads.length / documents.length) * 100) : 0;
+            document.getElementById('userContribution').textContent = userContribution + '%';
         }
 
-        function updateTimerDisplay(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            document.getElementById('timer').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Goals Functionality
-        function addGoal() {
-            const goal = prompt('Enter your new learning goal:');
-            if (goal) {
-                alert('Goal added: ' + goal);
-            }
+        // Refresh Stats
+        function refreshStats() {
+            loadPlatformStats();
+            loadUserStats();
+            alert('Statistics updated!');
         }
 
         // Logout function
         function logout() {
-            localStorage.removeItem('learnhub_current_user');
+            localStorage.removeItem('docshare_current_user');
             window.location.href = 'index.html';
         }
 
         // Initialize dashboard when page loads
         initializeDashboard();
-        resetTimer();
-        loadStudyTime();
+
+        // Add some sample documents if none exist
+        window.addEventListener('load', function() {
+            const documents = getDocuments();
+            if (documents.length === 0) {
+                const sampleDocuments = [
+                    {
+                        id: '1',
+                        title: 'Classic Literature Collection',
+                        category: 'novels',
+                        description: 'A collection of classic novels from the 19th century',
+                        filename: 'classics.pdf',
+                        fileType: 'application/pdf',
+                        fileSize: 2500000,
+                        uploader: 'admin',
+                        uploadedAt: new Date().toISOString(),
+                        downloads: 45,
+                        rating: 4.5
+                    },
+                    {
+                        id: '2',
+                        title: 'Mathematics Past Papers 2023',
+                        category: 'pastpapers',
+                        description: 'Complete set of mathematics examination papers from 2023',
+                        filename: 'math_papers_2023.pdf',
+                        fileType: 'application/pdf',
+                        fileSize: 1800000,
+                        uploader: 'admin',
+                        uploadedAt: new Date().toISOString(),
+                        downloads: 32,
+                        rating: 4.2
+                    }
+                ];
+                saveDocuments(sampleDocuments);
+                loadDocuments();
+            }
+        });
     </script>
 </body>
 </html>
