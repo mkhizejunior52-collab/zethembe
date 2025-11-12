@@ -144,6 +144,13 @@
             font-size: 0.9rem;
             color: #666;
         }
+        .message { 
+            padding: 10px; border-radius: 5px; 
+            margin-bottom: 20px; text-align: center;
+            font-weight: 500;
+        }
+        .success { background: #d4ffd4; color: green; }
+        .error { background: #ffd4d4; color: red; }
     </style>
 </head>
 <body>
@@ -207,7 +214,7 @@
                     </div>
                     <button class="btn btn-success" onclick="uploadDocument()">Upload Document</button>
                 </div>
-                <div id="uploadStatus" style="margin-top: 10px;"></div>
+                <div id="uploadStatus" class="message" style="display: none;"></div>
             </div>
 
             <!-- Document Library Card -->
@@ -266,26 +273,26 @@
     </div>
 
     <script>
-       // SECURITY CHECK - USE YOUR EXISTING USER SYSTEM
-const currentUser = localStorage.getItem('docshare_current_user');
+        // SECURITY CHECK - FIXED: Using docshare_current_user to match login
+        const currentUser = localStorage.getItem('docshare_current_user');
         if (!currentUser) {
             alert('Please login first!');
             window.location.href = 'index.html';
         }
 
-        // User Data Management - USE YOUR EXISTING SYSTEM
+        // User Data Management - FIXED: Using docshare_users to match login
         function getUserData() {
-            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
             return users[currentUser] || {};
         }
 
         function saveUserData(userData) {
-            const users = JSON.parse(localStorage.getItem('learnhub_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('docshare_users') || '{}');
             users[currentUser] = { ...getUserData(), ...userData };
-            localStorage.setItem('learnhub_users', JSON.stringify(users));
+            localStorage.setItem('docshare_users', JSON.stringify(users));
         }
 
-        // Document Storage Management (NEW)
+        // Document Storage Management
         function getDocuments() {
             return JSON.parse(localStorage.getItem('docshare_documents') || '[]');
         }
@@ -298,22 +305,22 @@ const currentUser = localStorage.getItem('docshare_current_user');
         function initializeDashboard() {
             const userData = getUserData();
             
-            // Display user info USING YOUR EXISTING USER DATA
+            // Display user info
             document.getElementById('welcomeMessage').textContent = `Welcome back, ${currentUser}!`;
             
-            // Profile picture USING YOUR EXISTING SYSTEM
+            // Profile picture
             if (userData.profilePic) {
                 document.getElementById('userProfilePic').src = userData.profilePic;
             }
             
-            // User details USING YOUR EXISTING SYSTEM
+            // User details
             document.getElementById('userDetails').innerHTML = `
                 <strong>Username:</strong> ${userData.username}<br>
                 <strong>Email:</strong> ${userData.email}<br>
                 <strong>User Type:</strong> ${userData.userType || 'Member'}
             `;
             
-            // Member since USING YOUR EXISTING SYSTEM
+            // Member since
             if (userData.createdAt) {
                 const created = new Date(userData.createdAt);
                 document.getElementById('memberSince').textContent = created.toLocaleDateString();
@@ -370,31 +377,39 @@ const currentUser = localStorage.getItem('docshare_current_user');
             downloadsDiv.innerHTML = '';
             uploadsDiv.innerHTML = '';
             
-            recentDownloads.forEach(download => {
-                const element = document.createElement('div');
-                element.className = 'document-item';
-                element.innerHTML = `
-                    <strong>${download.title}</strong>
-                    <div class="document-stats">
-                        <span>${download.category}</span>
-                        <span>${new Date(download.downloadedAt).toLocaleDateString()}</span>
-                    </div>
-                `;
-                downloadsDiv.appendChild(element);
-            });
+            if (recentDownloads.length === 0) {
+                downloadsDiv.innerHTML = '<div class="document-item">No downloads yet</div>';
+            } else {
+                recentDownloads.forEach(download => {
+                    const element = document.createElement('div');
+                    element.className = 'document-item';
+                    element.innerHTML = `
+                        <strong>${download.title}</strong>
+                        <div class="document-stats">
+                            <span>${download.category}</span>
+                            <span>${new Date(download.downloadedAt).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    downloadsDiv.appendChild(element);
+                });
+            }
             
-            recentUploads.forEach(upload => {
-                const element = document.createElement('div');
-                element.className = 'document-item';
-                element.innerHTML = `
-                    <strong>${upload.title}</strong>
-                    <div class="document-stats">
-                        <span>${upload.category}</span>
-                        <span>${new Date(upload.uploadedAt).toLocaleDateString()}</span>
-                    </div>
-                `;
-                uploadsDiv.appendChild(element);
-            });
+            if (recentUploads.length === 0) {
+                uploadsDiv.innerHTML = '<div class="document-item">No uploads yet</div>';
+            } else {
+                recentUploads.forEach(upload => {
+                    const element = document.createElement('div');
+                    element.className = 'document-item';
+                    element.innerHTML = `
+                        <strong>${upload.title}</strong>
+                        <div class="document-stats">
+                            <span>${upload.category}</span>
+                            <span>${new Date(upload.uploadedAt).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    uploadsDiv.appendChild(element);
+                });
+            }
         }
 
         // Upload Document Function
@@ -414,20 +429,15 @@ const currentUser = localStorage.getItem('docshare_current_user');
                 return;
             }
             
-            if (files.length === 0) {
-                showUploadStatus('Please select a file to upload', 'error');
-                return;
-            }
-            
             // Create document object
             const document = {
                 id: Date.now().toString(),
                 title: title,
                 category: category,
                 description: description,
-                filename: files[0].name,
-                fileType: files[0].type,
-                fileSize: files[0].size,
+                filename: files.length > 0 ? files[0].name : 'document',
+                fileType: files.length > 0 ? files[0].type : 'application/pdf',
+                fileSize: files.length > 0 ? files[0].size : 0,
                 uploader: currentUser,
                 uploadedAt: new Date().toISOString(),
                 downloads: 0
@@ -438,7 +448,7 @@ const currentUser = localStorage.getItem('docshare_current_user');
             documents.push(document);
             saveDocuments(documents);
             
-            // Update user uploads USING YOUR EXISTING USER SYSTEM
+            // Update user uploads
             const userData = getUserData();
             const uploads = userData.uploads || [];
             uploads.push({
@@ -483,7 +493,7 @@ const currentUser = localStorage.getItem('docshare_current_user');
             const filteredDocs = documents.filter(doc => {
                 const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
                 const matchesSearch = doc.title.toLowerCase().includes(searchTerm) || 
-                                    doc.description.toLowerCase().includes(searchTerm);
+                                    (doc.description && doc.description.toLowerCase().includes(searchTerm));
                 return matchesCategory && matchesSearch;
             });
             
@@ -497,7 +507,7 @@ const currentUser = localStorage.getItem('docshare_current_user');
                 docElement.className = 'document-item';
                 docElement.innerHTML = `
                     <strong>${doc.title}</strong>
-                    <p>${doc.description}</p>
+                    <p>${doc.description || 'No description'}</p>
                     <div class="document-stats">
                         <span>📁 ${doc.category}</span>
                         <span>👤 ${doc.uploader}</span>
@@ -520,7 +530,7 @@ const currentUser = localStorage.getItem('docshare_current_user');
                 document.downloads = (document.downloads || 0) + 1;
                 saveDocuments(documents);
                 
-                // Update user downloads USING YOUR EXISTING USER SYSTEM
+                // Update user downloads
                 const userData = getUserData();
                 const downloads = userData.downloads || [];
                 downloads.push({
@@ -571,10 +581,12 @@ const currentUser = localStorage.getItem('docshare_current_user');
                 categoryCount[doc.category] = (categoryCount[doc.category] || 0) + 1;
             });
             
-            const popularCategory = Object.keys(categoryCount).reduce((a, b) => 
-                categoryCount[a] > categoryCount[b] ? a : b, 'None'
-            );
-            
+            let popularCategory = 'None';
+            if (Object.keys(categoryCount).length > 0) {
+                popularCategory = Object.keys(categoryCount).reduce((a, b) => 
+                    categoryCount[a] > categoryCount[b] ? a : b
+                );
+            }
             document.getElementById('popularCategory').textContent = popularCategory;
             
             // Calculate user contribution
@@ -590,9 +602,9 @@ const currentUser = localStorage.getItem('docshare_current_user');
             alert('Statistics updated!');
         }
 
-        // Logout function - USE YOUR EXISTING SYSTEM
+        // Logout function - FIXED: Using docshare_current_user
         function logout() {
-            localStorage.removeItem('learnhub_current_user');
+            localStorage.removeItem('docshare_current_user');
             window.location.href = 'index.html';
         }
 
@@ -636,4 +648,3 @@ const currentUser = localStorage.getItem('docshare_current_user');
     </script>
 </body>
 </html>
-
