@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnHub - Learning Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 10px 0;
+        }
+        .progress {
+            background: #667eea;
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #5a6fd8; }
+        .resource-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <h1>🚀 LearnHub Dashboard</h1>
+        <p>Welcome to your learning center!</p>
+    </div>
+
+    <div class="container">
+        <div class="dashboard">
+            <!-- Progress Card -->
+            <div class="card">
+                <h3>📊 Your Progress</h3>
+                <p>HTML & CSS: <span id="htmlPercent">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress" id="htmlProgress"></div>
+                </div>
+                <p>JavaScript: <span id="jsPercent">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress" id="jsProgress"></div>
+                </div>
+                <button class="btn" onclick="updateProgress()">Update Progress</button>
+            </div>
+
+            <!-- Study Timer -->
+            <div class="card">
+                <h3>⏰ Study Timer</h3>
+                <div style="font-size: 2rem; text-align: center; margin: 15px 0;" id="timer">25:00</div>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="startTimer(25)">25 Min</button>
+                    <button class="btn" onclick="startTimer(5)">5 Min</button>
+                    <button class="btn" onclick="resetTimer()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Resources -->
+            <div class="card">
+                <h3>📚 Learning Resources</h3>
+                <div class="resource-item">
+                    <strong>MDN Web Docs</strong>
+                    <p>Best web development documentation</p>
+                </div>
+                <div class="resource-item">
+                    <strong>FreeCodeCamp</strong>
+                    <p>Free coding tutorials</p>
+                </div>
+                <div class="resource-item">
+                    <strong>W3Schools</strong>
+                    <p>Beginner-friendly tutorials</p>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="card">
+                <h3>📝 Quick Notes</h3>
+                <textarea id="notes" placeholder="Take your learning notes here..." 
+                         style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;"></textarea>
+                <button class="btn" onclick="saveNote()">Save Note</button>
+                <div id="savedNotes" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SECURITY CHECK - MUST BE AT TOP
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            alert('Please login first!');
+            window.location.href = 'index.html';
+        }
+
+        // Display username
+        const username = localStorage.getItem('username') || 'Student';
+        document.querySelector('.header p').textContent = `Welcome, ${username}!`;
+
+        // Progress functionality
+        function updateProgress() {
+            const htmlProgress = Math.floor(Math.random() * 100);
+            const jsProgress = Math.floor(Math.random() * 100);
+            
+            document.getElementById('htmlProgress').style.width = htmlProgress + '%';
+            document.getElementById('jsProgress').style.width = jsProgress + '%';
+            document.getElementById('htmlPercent').textContent = htmlProgress + '%';
+            document.getElementById('jsPercent').textContent = jsProgress + '%';
+        }
+
+        // Timer functionality
+        let timerInterval;
+        function startTimer(minutes) {
+            clearInterval(timerInterval);
+            let timeLeft = minutes * 60;
+            updateTimerDisplay(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay(timeLeft);
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('⏰ Time\'s up! Take a break!');
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay(25 * 60);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Notes functionality
+        function saveNote() {
+            const note = document.getElementById('notes').value;
+            if (note) {
+                const notesDiv = document.getElementById('savedNotes');
+                const noteElement = document.createElement('div');
+                noteElement.className = 'resource-item';
+                noteElement.innerHTML = `<strong>Note:</strong> ${note} <small>(${new Date().toLocaleTimeString()})</small>`;
+                notesDiv.appendChild(noteElement);
+                document.getElementById('notes').value = '';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize
+        updateProgress();
+        resetTimer();
+    </script>
+</body>
+</html>
